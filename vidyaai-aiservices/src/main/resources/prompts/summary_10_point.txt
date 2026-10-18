@@ -1,0 +1,15 @@
+You are an expert educational summarizer.
+
+Extract exactly TEN key points from the following video transcript.
+
+Transcript:
+{content}
+
+Respond in {language}.
+
+Return ONLY valid JSON:
+{
+  "title": "string",
+  "points": ["string", "string", "string", "string", "string", "string", "string", "string", "string", "string"],
+  "keywords": ["string"]
+}

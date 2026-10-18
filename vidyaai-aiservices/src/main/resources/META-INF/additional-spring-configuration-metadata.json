@@ -1,0 +1,100 @@
+{
+  "properties": [
+    {
+      "name": "groq.api.key",
+      "type": "java.lang.String",
+      "description": "Groq API key"
+    },
+    {
+      "name": "groq.api.base-url",
+      "type": "java.lang.String",
+      "description": "Groq API base URL"
+    },
+    {
+      "name": "groq.api.model",
+      "type": "java.lang.String",
+      "description": "Groq model name"
+    },
+    {
+      "name": "groq.api.timeout-seconds",
+      "type": "java.lang.Integer",
+      "description": "Request timeout in seconds"
+    },
+    {
+      "name": "groq.api.max-retries",
+      "type": "java.lang.Integer",
+      "description": "Max retries on failure"
+    },
+    {
+      "name": "groq.api.temperature",
+      "type": "java.lang.Double",
+      "description": "Sampling temperature"
+    },
+    {
+      "name": "ai.processing.chunk-size",
+      "type": "java.lang.Integer",
+      "description": "Text chunk size for embeddings"
+    },
+    {
+      "name": "ai.processing.chunk-overlap",
+      "type": "java.lang.Integer",
+      "description": "Chunk overlap for embeddings"
+    },
+    {
+      "name": "ai.processing.max-content-length",
+      "type": "java.lang.Integer",
+      "description": "Max content length accepted"
+    },
+    {
+      "name": "ai.processing.async-core-pool-size",
+      "type": "java.lang.Integer",
+      "description": "Async executor core pool size"
+    },
+    {
+      "name": "ai.processing.async-max-pool-size",
+      "type": "java.lang.Integer",
+      "description": "Async executor max pool size"
+    },
+    {
+      "name": "ai.processing.async-queue-capacity",
+      "type": "java.lang.Integer",
+      "description": "Async executor queue capacity"
+    },
+    {
+      "name": "ai.cache.summary-ttl-seconds",
+      "type": "java.lang.Long"
+    },
+    {
+      "name": "ai.cache.notes-ttl-seconds",
+      "type": "java.lang.Long"
+    },
+    {
+      "name": "ai.cache.quiz-ttl-seconds",
+      "type": "java.lang.Long"
+    },
+    {
+      "name": "ai.cache.chatbot-ttl-seconds",
+      "type": "java.lang.Long"
+    },
+    {
+      "name": "ai.cache.transcript-ttl-seconds",
+      "type": "java.lang.Long"
+    },
+    {
+      "name": "ai.limits.max-chat-message-length",
+      "type": "java.lang.Integer"
+    },
+    {
+      "name": "ai.limits.max-chat-history-size",
+      "type": "java.lang.Integer"
+    },
+    {
+      "name": "ai.limits.max-video-duration-seconds",
+      "type": "java.lang.Integer"
+    },
+    {
+      "name": "ai.limits.min-video-duration-seconds",
+      "type": "java.lang.Integer"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+
+# Local artifacts and private configuration
+**/node_modules/
+**/.next/
+**/target/
+**/.idea/
+**/logs/
+*.log
+.env
+.env.local
+.env.*.local
+

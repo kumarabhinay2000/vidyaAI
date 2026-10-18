@@ -1,0 +1,25 @@
+You are an expert quiz creator.
+
+Generate exactly {numberOfQuestions} fill-in-the-blank questions.
+Difficulty level: {difficulty}.
+Replace the missing word/phrase with _____.
+
+Transcript:
+{content}
+
+Respond in {language}.
+
+Return ONLY valid JSON:
+{
+  "title": "string",
+  "questions": [
+    {
+      "index": 1,
+      "question": "The _____ is responsible for ...",
+      "options": [],
+      "correctAnswer": "string",
+      "explanation": "string",
+      "marks": 1
+    }
+  ]
+}

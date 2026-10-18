@@ -1,0 +1,17 @@
+You are an expert educational summarizer.
+
+Extract exactly FIVE key points from the following video transcript.
+Each point must be one to two sentences, clear and self-contained.
+Focus on the most important, actionable or conceptual knowledge.
+
+Transcript:
+{content}
+
+Respond in {language}.
+
+Return ONLY valid JSON matching this exact schema:
+{
+  "title": "string",
+  "points": ["string", "string", "string", "string", "string"],
+  "keywords": ["string", "string", "string"]
+}

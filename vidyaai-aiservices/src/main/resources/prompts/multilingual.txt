@@ -1,0 +1,5 @@
+Translate the following content into {language}.
+Preserve the original structure, list formatting, and technical terminology.
+
+Content:
+{content}

@@ -1,0 +1,201 @@
+spring:
+  application:
+    name: vidyaai-videoservices
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/video_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: VideoServiceHikariPool
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2GB
+      max-request-size: 2GB
+      file-size-threshold: 10MB
+
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 16
+        max-idle: 8
+        min-idle: 2
+        max-wait: -1ms
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    admin:
+      fail-fast: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        acks: all
+        retries: 3
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      group-id: video-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.type.mapping: >
+          AiProcessingCompletedEvent:org.vidyaai.videoservices.event.AiProcessingCompletedEvent,
+          AiProcessingFailedEvent:org.vidyaai.videoservices.event.AiProcessingFailedEvent
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      max-poll-records: 10
+    listener:
+      auto-startup: false
+      ack-mode: manual_immediate
+      concurrency: 2
+
+# MinIO / S3-compatible object storage
+storage:
+  minio:
+    enabled: true
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket: ${MINIO_BUCKET:vidyaai-videos}
+    region: ${MINIO_REGION:us-east-1}
+    presigned-url-expiry-seconds: 3600
+  # Fallback local filesystem storage if MinIO is disabled
+  local:
+    base-path: ${LOCAL_STORAGE_PATH:./storage/videos}
+    public-base-url: ${LOCAL_PUBLIC_URL:http://localhost:8082/storage}
+
+# YouTube Data API
+youtube:
+  api:
+    key: ${YOUTUBE_API_KEY:}
+    timeout-seconds: 15
+    max-retries: 2
+
+# Video-specific business rules
+video:
+  upload:
+    max-size-bytes: 2147483648  # 2GB
+    min-duration-seconds: 30
+    max-duration-seconds: 7200
+    allowed-formats: mp4,webm,mkv,mov,avi
+    allowed-mime-types: video/mp4,video/webm,video/x-matroska,video/quicktime,video/x-msvideo
+  processing:
+    thumbnail-width: 640
+    thumbnail-height: 360
+    chunk-size-mb: 5
+  cache:
+    video-ttl-seconds: 3600
+    metadata-ttl-seconds: 3600
+    status-ttl-seconds: 300
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+logging:
+  level:
+    org.vidyaai.videoservices: DEBUG
+    org.hibernate.SQL: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
+  file:
+    name: logs/video-service.log
+    max-size: 10MB
+    max-history: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      minioStorage:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 3
+        register-health-indicator: true
+      youtubeApi:
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 5
+      kafkaProducer:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 3
+      redisCache:
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 5
+  retry:
+    instances:
+      youtubeApiRetry:
+        max-attempts: 3
+        wait-duration: 2s
+      kafkaProducerRetry:
+        max-attempts: 3
+        wait-duration: 2s
+  bulkhead:
+    instances:
+      videoUploadBulkhead:
+        max-concurrent-calls: 10
+        max-wait-duration: 500ms

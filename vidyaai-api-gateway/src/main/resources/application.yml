@@ -1,0 +1,177 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: vidyaai-api-gateway
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: user-service
+              uri: lb://vidyaai-userservices
+              predicates:
+                - Path=/api/auth/**,/api/users/**
+              filters:
+                - StripPrefix=0
+                - name: CircuitBreaker
+                  args:
+                    name: userServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/user-service
+                - name: Retry
+                  args:
+                    retries: 2
+                    statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+                    methods: GET,POST,PUT,DELETE
+
+            - id: video-service
+              uri: lb://vidyaai-videoservices
+              predicates:
+                - Path=/api/videos/**
+              filters:
+                - StripPrefix=0
+                - name: CircuitBreaker
+                  args:
+                    name: videoServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/video-service
+
+            - id: ai-service
+              uri: lb://vidyaai-aiservices
+              predicates:
+                - Path=/api/ai/**
+              filters:
+                - StripPrefix=0
+                - name: CircuitBreaker
+                  args:
+                    name: aiServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/ai-service
+
+            - id: quiz-service
+              uri: lb://vidyaai-quizservices
+              predicates:
+                - Path=/api/quizzes/**
+              filters:
+                - StripPrefix=0
+                - name: CircuitBreaker
+                  args:
+                    name: quizServiceCircuitBreaker
+                    fallbackUri: forward:/fallback/quiz-service
+
+          # Global CORS
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origin-patterns: "*"
+                allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+                allowed-headers: "*"
+                exposed-headers: Authorization,Content-Disposition
+                allow-credentials: true
+                max-age: 3600
+
+  main:
+    web-application-type: servlet
+
+# Public routes (no JWT required)
+gateway:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+    public-paths:
+      - /api/auth/register
+      - /api/auth/login
+      - /api/auth/refresh-token
+      - /api/ai/health
+      - /api/videos/health
+      - /api/quizzes/health
+      - /actuator/**
+      - /fallback/**
+      - /error
+  rate-limit:
+    enabled: true
+    default-requests-per-minute: 100
+    auth-requests-per-minute: 20
+  correlation:
+    header-name: X-Correlation-Id
+  timeouts:
+    connect-ms: 5000
+    response-ms: 30000
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      userServiceCircuitBreaker:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 3
+      videoServiceCircuitBreaker:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 3
+      aiServiceCircuitBreaker:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 3
+      quizServiceCircuitBreaker:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 3
+
+logging:
+  level:
+    org.vidyaai.apigateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    reactor.netty: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{36} - %msg%n"
+  file:
+    name: logs/api-gateway.log
+    max-size: 10MB
+    max-history: 30
+
+info:
+  app:
+    name: VidyaAI API Gateway
+    description: Central entry point for VidyaAI microservices
+    version: 1.0.0

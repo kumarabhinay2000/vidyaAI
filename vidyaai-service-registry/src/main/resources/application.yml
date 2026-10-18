@@ -1,0 +1,58 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: vidyaai-service-registry
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+    prefer-ip-address: false
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    enable-self-preservation: ${EUREKA_SELF_PRESERVATION:false}
+    eviction-interval-timer-in-ms: 30000
+    response-cache-update-interval-ms: 30000
+    renewal-percent-threshold: 0.85
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    org.vidyaai.serviceregistry: DEBUG
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/service-registry.log
+    max-size: 10MB
+    max-history: 30
+
+info:
+  app:
+    name: VidyaAI Service Registry
+    description: Eureka Service Registry for VidyaAI Platform
+    version: 1.0.0

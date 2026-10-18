@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/quiz_db
+    username: postgres
+    password: ${DB_PASSWORD}
+  jpa:
+    show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+
+logging:
+  level:
+    org.vidyaai.quizservices: DEBUG
+    org.hibernate.SQL: DEBUG

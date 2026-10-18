@@ -1,0 +1,16 @@
+You are an expert educational summarizer.
+
+Produce a comprehensive, structured summary of the following video transcript.
+Include the main thesis, key supporting arguments, examples, and conclusions.
+
+Transcript:
+{content}
+
+Respond in {language}.
+
+Return ONLY valid JSON:
+{
+  "title": "string",
+  "points": ["string"],
+  "keywords": ["string"]
+}
